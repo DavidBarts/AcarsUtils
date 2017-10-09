@@ -281,8 +281,10 @@ public class WxDecoderTest {
             48.8162, -123.5620, 35004, parseDate("2017-12-31T23:43:00Z"));
         shouldBe.setTemperature(-50.5f).setWindDirection((short) 227)
             .setWindSpeed((short) 55);
-        AcarsObservation actuallyIs = decoderForName("AS").decode(asObs, OLD_YEAR).iterator().next();
+        WxDecoder dec = decoderForName("AS");
+        AcarsObservation actuallyIs = dec.decode(asObs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));
+        assertNull(dec.decode(asNonObs));
     }
 
     @Test
@@ -298,8 +300,10 @@ public class WxDecoderTest {
             47.27, -122.18, 1353, parseDate("2017-12-31T23:50:00Z"));
         shouldBe.setTemperature(24.2f).setWindDirection((short) 47)
             .setWindSpeed((short) 5);
-        AcarsObservation actuallyIs = decoderForName("WN").decode(wnObs, OLD_YEAR).iterator().next();
+        WxDecoder dec = decoderForName("WN");
+        AcarsObservation actuallyIs = dec.decode(wnObs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));
+        assertNull(dec.decode(wnNonObs));
     }
 
     @Test
@@ -332,6 +336,7 @@ public class WxDecoderTest {
         nwObs.setMessage("#DFB*WXR\r\n");
         empty = dec.decode(nwObs, OLD_YEAR).iterator();
         assertFalse(empty.hasNext());
+        assertNull(dec.decode(nwNonObs));
     }
 
     @Test
@@ -364,6 +369,7 @@ public class WxDecoderTest {
             .setWindSpeed((short) 22);
         actuallyIs = dec.decode(fxObsA, OLD_YEAR).iterator().next();
         assert(actuallyIs.equals(shouldBe));
+        assertNull(dec.decode(fxNonObs));
     }
 
     private static Date parseDate(String s) {
