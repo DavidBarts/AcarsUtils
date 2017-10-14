@@ -97,6 +97,7 @@ public class DecoderForWN extends WxDecoder {
         GregorianCalendar today = new GregorianCalendar(ZONE);
         today.setTime(baseTime);
         today.set(GregorianCalendar.SECOND, 0);
+        today.set(GregorianCalendar.MILLISECOND, 0);
         GregorianCalendar yesterday = (GregorianCalendar) today.clone();
         yesterday.add(GregorianCalendar.DATE, -1);
         GregorianCalendar tomorrow = (GregorianCalendar) today.clone();

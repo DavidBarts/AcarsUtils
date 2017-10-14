@@ -421,7 +421,7 @@ public class AcarsMessage implements IAcarsMessage {
             flightId = string.substring(k, end);
             k = end;
         }
-        message = string.substring(k);
+        message = --len > k ? string.substring(k, len) : "";
         if (label.equals("H1")) {
             int mesh = message.indexOf((int) '#');
             if (mesh == -1 || mesh > 3 || message.length() - mesh < 3)

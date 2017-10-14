@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="WxAloftApi" default="help" basedir=".">
+<project name="AcarsUtils" default="help" basedir=".">
   <!-- import all environment variables as env.* -->
   <property environment="env"/>
 

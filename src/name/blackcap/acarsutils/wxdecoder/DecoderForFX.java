@@ -133,6 +133,7 @@ public class DecoderForFX extends WxDecoder {
         hours = new HashMap<Integer,GregorianCalendar>();
         GregorianCalendar base = new GregorianCalendar(ZONE);
         base.setTime(baseTime);
+        base.set(GregorianCalendar.MILLISECOND, 0);
         base.add(GregorianCalendar.HOUR_OF_DAY, -22);
         for (int i=0; i<24; i++) {
             GregorianCalendar c = (GregorianCalendar) base.clone();
