@@ -15,7 +15,7 @@ import name.blackcap.acarsutils.*;
  *
  * @author David Barts <n5jrn@me.com>
  */
-public class DecoderForNW extends WxDecoder {
+public class DecoderForDL extends WxDecoder {
     private static final TimeZone ZONE = TimeZone.getTimeZone("GMT");
 
     private HashMap<Integer,GregorianCalendar> hours;
@@ -55,7 +55,7 @@ public class DecoderForNW extends WxDecoder {
                 ret.add(obs);
         }
 
-        return ret;
+        return found ? ret : null;
     }
 
     private AcarsObservation makeObs(String line) {
@@ -79,18 +79,8 @@ public class DecoderForNW extends WxDecoder {
         int length = line.length();
         if (length < 24)
             return ret;
-        int isign = 0;
-        switch (line.charAt(21)) {
-        case 'M':
-            isign = -1;
-            break;
-        case 'P':
-            isign = 1;
-            break;
-        default:
-            return null;
-        }
-        ret.setTemperature((float) (isign * Integer.parseInt(line.substring(22, 24)));
+        float fsign = line.charAt(21) == 'P' ? 1.0f : -1.0f;
+        ret.setTemperature(fsign * Float.parseFloat(line.substring(22, 24)));
 
         // Wind direction. Must be complete.
         if (length < 28)

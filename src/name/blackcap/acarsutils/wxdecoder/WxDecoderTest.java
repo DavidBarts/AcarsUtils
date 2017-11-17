@@ -29,9 +29,9 @@ public class WxDecoderTest {
        near midnight */
     private FakeAcarsMessage asObs, asNonObs, asAck;
     private FakeAcarsMessage wnObs, wnNonObs, wnAck;
-    private FakeAcarsMessage dlObs;
     private FakeAcarsMessage nwObs, nwNonObs, nwAck;
     private FakeAcarsMessage fxObsA, fxObsB, fxNonObs, fxAck;
+    private FakeAcarsMessage dlObs, dlNonObs, dlBadObs;
 
     private FakeAcarsMessage[] allMessages;
 
@@ -83,13 +83,6 @@ public class WxDecoderTest {
             .setMode('2').setBlockId('7').setAcknowledge('C')
             .setMessageId("S23A");
 
-        dlObs = new FakeAcarsMessage();
-        dlObs.setRegistration(".N176DN").setFlightId("DL0129").setLabel("H1")
-            .setMode('2').setBlockId('3').setAcknowledge('\u0015')
-            .setMessageId("D48A").setSource("DF")
-            .setMessage("#DFB/WX02EN27KSEAZBAA\r\n" +
-                "N47350W12230023300306P1352410080XXXX2200JGERV");
-
         nwObs = new FakeAcarsMessage();
         nwObs.setRegistration(".N548US").setFlightId("NW1598").setLabel("H1")
             .setMode('2').setBlockId('9').setAcknowledge('\u0015')
@@ -139,9 +132,31 @@ public class WxDecoderTest {
             .setMode('2').setBlockId('7').setAcknowledge('C')
             .setMessageId("S23A");
 
+        dlObs = new FakeAcarsMessage();
+        dlObs.setRegistration(".N1610D").setFlightId("DL0589").setLabel("H1")
+            .setMode('7').setBlockId('4').setAcknowledge('\u0015')
+            .setMessageId("D84A").setSource("DF")
+            .setMessage("#DFB\r\n" +
+                "N47628W12288323552151M3402250590XXXX24::RGYY(\r\n" +
+                "N47714W12298303062348M3872230570XXXX2400B0/9W");
+
+        dlBadObs = new FakeAcarsMessage();
+        dlBadObs.setRegistration(".N1611B").setFlightId("DL0129").setLabel("H1")
+            .setMode('2').setBlockId('7').setAcknowledge('\u0015')
+            .setMessageId("D27B").setSource("DF")
+            .setMessage("#DFB/WX02EN--KSEAZSPD\r\n" +
+                "N47347W12230831630402P0472600260XXXX2600ZOA-P");
+
+        dlNonObs = new FakeAcarsMessage();
+        dlNonObs.setRegistration(".N1612T").setFlightId("DL0588").setLabel("H1")
+            .setMode('2').setBlockId('0').setAcknowledge('\u0015')
+            .setMessageId("D25A").setSource("DF")
+            .setMessage("#DFB239N1612 0588111617154817301 4761-12232 34  5  0206 21AK-196 14320\r\n" +
+                " 187 177 0961543100B8W/XZSPDKSEA");
+
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
-            fxNonObs, fxAck };
+            fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs };
     }
 
     /* a given airline's decoder should only decode its messages */
@@ -370,6 +385,28 @@ public class WxDecoderTest {
         actuallyIs = dec.decode(fxObsA, OLD_YEAR).iterator().next();
         assert(actuallyIs.equals(shouldBe));
         assertNull(dec.decode(fxNonObs));
+    }
+
+    @Test
+    public void delta() {
+        onlyGetsMine("DL");
+
+        wrapsAround(dlObs);
+        bothNewlinesWork(dlObs);
+        worksWithTrailingNewline(dlObs);
+        worksWithHarmlessTruncation(dlObs, 18);
+        worksWithHarmfulTruncation(dlObs, 22);
+
+        AcarsObservation shouldBe = new AcarsObservation(
+            47.628, -122.883, 21510, parseDate("2017-12-31T23:55:00Z"));
+        shouldBe.setTemperature(-34.0f).setWindDirection((short) 225)
+            .setWindSpeed((short) 59);
+        WxDecoder dec = decoderForName("DL");
+        AcarsObservation actuallyIs = dec.decode(dlObs, OLD_YEAR).iterator().next();
+        assert(actuallyIs.equals(shouldBe));
+
+        assertFalse(dec.decode(dlBadObs).iterator().hasNext());
+        assertNull(dec.decode(dlNonObs));
     }
 
     private static Date parseDate(String s) {
