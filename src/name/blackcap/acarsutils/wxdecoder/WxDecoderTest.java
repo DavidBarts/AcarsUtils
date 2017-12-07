@@ -429,7 +429,7 @@ public class WxDecoderTest {
             .setWindSpeed((short) 59);
         WxDecoder dec = decoderForName("DL");
         AcarsObservation actuallyIs = dec.decode(dlObs, OLD_YEAR).iterator().next();
-        assert(actuallyIs.equals(shouldBe));
+        assertTrue(actuallyIs.equals(shouldBe));
 
         assertFalse(dec.decode(dlBadObs).iterator().hasNext());
         assertNull(dec.decode(dlNonObs));
