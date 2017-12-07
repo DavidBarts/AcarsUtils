@@ -12,7 +12,7 @@ import name.blackcap.acarsutils.*;
 
 /**
  * Decoder for Federal Express (FX), a carrier which thoughtfully encodes
- * observations in at least two different ways.
+ * observations in at least three different ways.
  *
  * @author David Barts <n5jrn@me.com>
  */
@@ -24,7 +24,8 @@ public class DecoderForFX extends WxDecoder {
     private static final Pattern A_PARTIAL = Pattern.compile("/\\d{6}[NS]\\d{4}[EW]\\d{10}[-+\\d]\\d{2}");
     private static final Pattern B_FULL    = Pattern.compile("\\d{6}[-+\\d]\\d{6}[-+\\d]\\d{13}[-+d]\\d{10}");
     private static final Pattern B_PARTIAL = Pattern.compile("\\d{6}[-+\\d]\\d{6}[-+\\d]\\d{13}[-+d]\\d{2}");
-    private static final String PREFIX = "#DFB*WXR";
+    private static final Pattern C_FULL    = Pattern.compile("\\d{6}[NS]\\d{4}[EW]\\d{11}[-+\\d]\\d{10}");
+    private static final Pattern C_PARTIAL = Pattern.compile("\\d{6}[NS]\\d{4}[EW]\\d{11}[-+\\d]\\d{2}");
 
     /**
      * Decode something.
@@ -54,11 +55,16 @@ public class DecoderForFX extends WxDecoder {
             } else if (B_FULL.matcher(line).matches()) {
                 found = true;
                 obs = makeObsB(line);
+            } else if (C_FULL.matcher(line).matches()) {
+                found = true;
+                obs = makeObsC(line);
             } else if (found) {
                 if (A_PARTIAL.matcher(line).lookingAt())
                     obs = makeObsA(line);
                 else if (B_PARTIAL.matcher(line).lookingAt())
                     obs = makeObsB(line);
+                else if (C_PARTIAL.matcher(line).lookingAt())
+                    obs = makeObsC(line);
             }
             if (obs != null)
                 ret.add(obs);
@@ -89,12 +95,12 @@ public class DecoderForFX extends WxDecoder {
         // Wind direction. Must be complete.
         if (length < 30)
             return ret;
-        ret.setWindSpeed(Short.parseShort(line.substring(27, 30)));
+        ret.setWindDirection(Short.parseShort(line.substring(27, 30)));
 
         // Wind speed. Must be complete.
         if (length < 33)
             return ret;
-        ret.setWindDirection(Short.parseShort(line.substring(30, 33)));
+        ret.setWindSpeed(Short.parseShort(line.substring(30, 33)));
         return ret;
     }
 
@@ -124,6 +130,37 @@ public class DecoderForFX extends WxDecoder {
         if (length < 37)
             return ret;
         ret.setWindSpeed(Short.parseShort(line.substring(34, 37)));
+        return ret;
+    }
+
+    private AcarsObservation makeObsC(String line) {
+        // Get the basic four coordinates of the observation. These will always
+        // be present.
+        Date observed = parseTime(line.substring(0, 6));
+        double sign = line.charAt(6) == 'N' ? 1.0 : -1.0;
+        double latitude = sign * Double.parseDouble(line.substring(7, 11)) / 100.0;
+        sign = line.charAt(11) == 'E' ? 1.0 : -1.0;
+        double longitude = sign * Double.parseDouble(line.substring(12, 17)) / 100.0;
+        int altitude = Integer.parseInt(line.substring(18, 23));
+
+        // Build the base object.
+        AcarsObservation ret = new AcarsObservation(latitude, longitude, altitude, observed);
+
+        // Temperature. No fractional degrees, so must be complete.
+        int length = line.length();
+        if (length < 26)
+            return ret;
+        ret.setTemperature(Float.parseFloat(line.substring(23, 26)));
+
+        // Wind direction. Must be complete.
+        if (length < 30)
+            return ret;
+        ret.setWindDirection(Short.parseShort(line.substring(27, 30)));
+
+        // Wind speed. Must be complete.
+        if (length < 33)
+            return ret;
+        ret.setWindSpeed(Short.parseShort(line.substring(30, 33)));
         return ret;
     }
 

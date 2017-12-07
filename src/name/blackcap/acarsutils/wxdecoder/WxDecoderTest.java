@@ -30,7 +30,7 @@ public class WxDecoderTest {
     private FakeAcarsMessage asObs, asNonObs, asAck;
     private FakeAcarsMessage wnObs, wnNonObs, wnAck;
     private FakeAcarsMessage nwObs, nwNonObs, nwAck;
-    private FakeAcarsMessage fxObsA, fxObsB, fxNonObs, fxAck;
+    private FakeAcarsMessage fxObsA, fxObsB, fxObsC, fxNonObs, fxAck;
     private FakeAcarsMessage dlObs, dlNonObs, dlBadObs;
 
     private FakeAcarsMessage[] allMessages;
@@ -121,6 +121,16 @@ public class WxDecoderTest {
                 "2351380467425-1219567023607-2243450330\r\n" +
                 "2351510467161-1219392024179-2393430340");
 
+        fxObsC = new FakeAcarsMessage();
+        fxObsC.setRegistration(".N560FE").setFlightId("FX1802").setLabel("H1")
+            .setMode('2').setBlockId('2').setAcknowledge('\u0015')
+            .setMessageId("D85A").setSource("DF")
+            .setMessage("#DFB5WT4062914510079-164206596891460000414\r\n" +
+                "235028N4737W12224007043-0483500060\r\n" +
+                "235103N4737W12227008522-0790220030\r\n" +
+                "235138N4736W12230009905-1003410120\r\n" +
+                "235151N4734W12233010620-1133390170");
+
         fxNonObs = new FakeAcarsMessage();
         fxNonObs.setRegistration(".N998FD").setFlightId("FX6969").setLabel("H1")
             .setMode('2').setBlockId('0').setAcknowledge('\u0015')
@@ -156,7 +166,7 @@ public class WxDecoderTest {
 
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
-            fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs };
+            fxObsC, fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs };
     }
 
     /* a given airline's decoder should only decode its messages */
@@ -370,7 +380,7 @@ public class WxDecoderTest {
             .setWindSpeed((short) 5);
         WxDecoder dec = decoderForName("FX");
         AcarsObservation actuallyIs = dec.decode(fxObsA, OLD_YEAR).iterator().next();
-        assert(actuallyIs.equals(shouldBe));
+        assertTrue(actuallyIs.equals(shouldBe));
 
         wrapsAround(fxObsB);
         bothNewlinesWork(fxObsB);
@@ -382,8 +392,24 @@ public class WxDecoderTest {
             46.8800, -122.0479, 20659, parseDate("2017-12-31T23:50:28Z"));
         shouldBe.setTemperature(-16.0f).setWindDirection((short) 359)
             .setWindSpeed((short) 22);
-        actuallyIs = dec.decode(fxObsA, OLD_YEAR).iterator().next();
-        assert(actuallyIs.equals(shouldBe));
+        actuallyIs = dec.decode(fxObsB, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+
+        wrapsAround(fxObsC);
+        bothNewlinesWork(fxObsC);
+        worksWithTrailingNewline(fxObsC);
+        worksWithHarmlessTruncation(fxObsC, 5);
+        worksWithHarmfulTruncation(fxObsC, 14);
+
+        shouldBe = new AcarsObservation(
+            47.37, -122.24, 7043, parseDate("2017-12-31T23:50:28Z"));
+        shouldBe.setTemperature(-4.0f).setWindDirection((short) 350)
+            .setWindSpeed((short) 6);
+        actuallyIs = dec.decode(fxObsC, OLD_YEAR).iterator().next();
+        System.out.println("Actually is: " + actuallyIs);
+        System.out.println("Should be  : " + shouldBe);
+        assertTrue(actuallyIs.equals(shouldBe));
+
         assertNull(dec.decode(fxNonObs));
     }
 
