@@ -33,6 +33,7 @@ public class WxDecoderTest {
     private FakeAcarsMessage fxObsA, fxObsB, fxObsC, fxNonObs, fxAck;
     private FakeAcarsMessage dlObs, dlNonObs, dlBadObs;
     private FakeAcarsMessage aaObs, aaNonObs, aaAck;
+    private FakeAcarsMessage amObs1, amObs2, amBadObs, amNonObs;
 
     private FakeAcarsMessage[] allMessages;
 
@@ -186,10 +187,46 @@ public class WxDecoderTest {
             .setMode('2').setBlockId('2').setAcknowledge('W')
             .setMessageId("S07A");
 
+        amObs1 = new FakeAcarsMessage();
+        amObs1.setRegistration(".EI-DRC").setFlightId("AM0494").setLabel("H2")
+            .setMode('2').setBlockId('0').setAcknowledge('\u0015')
+            .setMessageId("M61A")
+            .setMessage("02D15MMMXKSEAN47061W12134923501843M257226040G    " +
+                "QN47090W12141223511742M252234039G    " +
+                "QN47117W12147423521578M212232040G    " +
+                "QN47145W12153323531453M182226042G    " +
+                "QN47171W12159423541363M160216040G    QN47200W12205");
+
+        amObs2 = new FakeAcarsMessage();
+        amObs2.setRegistration(".EI-DRC").setFlightId("AM0494").setLabel("H2")
+            .setMode('2').setBlockId('4').setAcknowledge('\u0015')
+            .setMessageId("M63A")
+            .setMessage("02D15MMMXKSEAN47360W1222902350 706M037198054G    " +
+                "QN47405W1222882351 621M025196057G    " +
+                "QN47447W1222872352 514M012186051G    " +
+                "QN47473W1222522353 500M007183053G    " +
+                "QN47471W1222122354 413P017180053G    QN47451W12220");
+
+        amBadObs = new FakeAcarsMessage();
+        amBadObs.setRegistration(".XA-ZAM").setFlightId("AM0495").setLabel("H2")
+            .setMode('2').setBlockId('0').setAcknowledge('\u0015')
+            .setMessageId("M98C")
+            .setMessage("41007G    N47367W122233 497P105202011G    " +
+                "N47371W122252 533P100170008G    " +
+                "N47369W122273 599P092147011G    " +
+                "N47357W122286 674P072126010G    " +
+                "N47341W122287 740P077091011G    " +
+                "N47327W122280 804P067085007G    N47313W1");
+
+        amNonObs = new FakeAcarsMessage();
+        amNonObs.setRegistration(".AM0494").setFlightId("AM0494").setLabel("Q0")
+            .setMode('2').setBlockId('9').setAcknowledge('\u0015')
+            .setMessageId("S18A");
+
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
             fxObsC, fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs, aaObs, aaAck,
-            aaNonObs };
+            aaNonObs, amObs1, amObs2, amBadObs, amNonObs };
     }
 
     /* a given airline's decoder should only decode its messages */
@@ -475,6 +512,39 @@ public class WxDecoderTest {
 
         assertNull(dec.decode(aaNonObs));
         assertNull(dec.decode(aaAck));
+    }
+
+    @Test
+    public void aeromexico() {
+        onlyGetsMine("AM");
+
+        wrapsAround(amObs1);
+        bothNewlinesWork(amObs1);
+        worksWithTrailingNewline(amObs1);
+        worksWithHarmfulTruncation(amObs1, 32);
+
+        AcarsObservation shouldBe = new AcarsObservation(
+            47.061, -121.349, 18430, parseDate("2017-12-31T23:50:00Z"));
+        shouldBe.setTemperature(-25.0f).setWindDirection((short) 226)
+            .setWindSpeed((short) 40);
+        WxDecoder dec = decoderForName("AM");
+        AcarsObservation actuallyIs = dec.decode(amObs1, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+
+        wrapsAround(amObs2);
+        bothNewlinesWork(amObs2);
+        worksWithTrailingNewline(amObs2);
+        worksWithHarmfulTruncation(amObs2, 32);
+
+        shouldBe = new AcarsObservation(
+            47.360, -122.290, 7060, parseDate("2017-12-31T23:50:00Z"));
+        shouldBe.setTemperature(-3.0f).setWindDirection((short) 198)
+            .setWindSpeed((short) 54);
+        actuallyIs = dec.decode(amObs2, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+
+        assertNull(dec.decode(amNonObs));
+        assertNull(dec.decode(amBadObs));
     }
 
     private static Date parseDate(String s) {
