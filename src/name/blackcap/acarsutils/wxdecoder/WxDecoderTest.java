@@ -34,6 +34,7 @@ public class WxDecoderTest {
     private FakeAcarsMessage dlObs, dlNonObs, dlBadObs;
     private FakeAcarsMessage aaObs, aaNonObs, aaAck;
     private FakeAcarsMessage amObs1, amObs2, amBadObs, amNonObs;
+    private FakeAcarsMessage f9Obs, f9NonObs, f9Ack;
 
     private FakeAcarsMessage[] allMessages;
 
@@ -223,10 +224,29 @@ public class WxDecoderTest {
             .setMode('2').setBlockId('9').setAcknowledge('\u0015')
             .setMessageId("S18A");
 
+        f9Obs = new FakeAcarsMessage();
+        f9Obs.setRegistration(".N949FR").setFlightId("F90142").setLabel("21")
+            .setMode('2').setBlockId('4').setAcknowledge('\u0015')
+            .setMessageId("M33A")
+            .setMessage("POSN 47.665W122.352, 107,235456,3714, 4262,   8,  3,173618,KSEA");
+
+        /* actually an obs, but we treat as a non-obs */
+        f9NonObs = new FakeAcarsMessage();
+        f9NonObs.setRegistration(".N910FR").setFlightId("F90137").setLabel("22")
+            .setMode('2').setBlockId('7').setAcknowledge('\u0015')
+            .setMessageId("M35A")
+            .setMessage("N 465544W1220108,-------,013130,21506, ,      , ,M 28,  634  69, 252,");
+
+        f9Ack = new FakeAcarsMessage();
+        f9Ack.setRegistration(".N709FR").setFlightId("F90681").setLabel("_\u007f")
+            .setMode('2').setBlockId('4').setAcknowledge('5')
+            .setMessageId("S65A");
+
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
             fxObsC, fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs, aaObs, aaAck,
-            aaNonObs, amObs1, amObs2, amBadObs, amNonObs };
+            aaNonObs, amObs1, amObs2, amBadObs, amNonObs, f9Obs, f9NonObs,
+            f9Ack };
     }
 
     /* a given airline's decoder should only decode its messages */
@@ -545,6 +565,21 @@ public class WxDecoderTest {
 
         assertNull(dec.decode(amNonObs));
         assertNull(dec.decode(amBadObs));
+    }
+
+    @Test
+    public void frontier() {
+        onlyGetsMine("F9");
+        wrapsAround(f9Obs);
+        worksWithTrailingNewline(f9Obs);
+
+        AcarsObservation shouldBe = new AcarsObservation(
+            47.665, -122.352, 3714, parseDate("2017-12-31T23:54:56Z"));
+        shouldBe.setTemperature(3.0f).setWindDirection((short) 107)
+            .setWindSpeed((short) 8);
+        WxDecoder dec = decoderForName("F9");
+        AcarsObservation actuallyIs = dec.decode(f9Obs, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
     }
 
     private static Date parseDate(String s) {
