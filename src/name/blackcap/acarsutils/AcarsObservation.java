@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils;
+package info.koosah.acarsutils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

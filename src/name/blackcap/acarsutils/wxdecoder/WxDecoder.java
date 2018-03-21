@@ -1,9 +1,9 @@
-package name.blackcap.acarsutils.wxdecoder;
+package info.koosah.acarsutils.wxdecoder;
 
 import java.util.Date;
 import java.util.HashMap;
-import name.blackcap.acarsutils.AcarsObservation;
-import name.blackcap.acarsutils.IAcarsMessage;
+import info.koosah.acarsutils.AcarsObservation;
+import info.koosah.acarsutils.IAcarsMessage;
 
 /**
  * This is the core class of the acarsutils.wxdecoder package, which

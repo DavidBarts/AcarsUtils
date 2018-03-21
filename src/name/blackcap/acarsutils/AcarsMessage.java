@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils;
+package info.koosah.acarsutils;
 
 import java.nio.charset.Charset;
 import java.util.Collections;

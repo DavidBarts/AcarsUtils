@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils;
+package info.koosah.acarsutils;
 
 /**
  * A class to help visualize what's in a java.lang.String containing ASCII

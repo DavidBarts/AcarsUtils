@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils.wxdecoder;
+package info.koosah.acarsutils.wxdecoder;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,8 +9,8 @@ import java.util.TimeZone;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import name.blackcap.acarsutils.AcarsObservation;
-import name.blackcap.acarsutils.FakeAcarsMessage;
+import info.koosah.acarsutils.AcarsObservation;
+import info.koosah.acarsutils.FakeAcarsMessage;
 
 /**
  * Tests for all weather decoders are here, because we want to test decoders

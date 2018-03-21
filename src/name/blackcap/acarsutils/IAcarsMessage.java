@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils;
+package info.koosah.acarsutils;
 
 /**
  * Defines standard getters for the basic parts of an ACARS message.

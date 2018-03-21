@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils;
+package info.koosah.acarsutils;
 
 /**
  * Allows us to spoof an ACARS message, mainly for the purpose of

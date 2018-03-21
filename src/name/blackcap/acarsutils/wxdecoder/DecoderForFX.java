@@ -1,4 +1,4 @@
-package name.blackcap.acarsutils.wxdecoder;
+package info.koosah.acarsutils.wxdecoder;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,7 +8,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import name.blackcap.acarsutils.*;
+import info.koosah.acarsutils.*;
 
 /**
  * Decoder for Federal Express (FX), a carrier which thoughtfully encodes
