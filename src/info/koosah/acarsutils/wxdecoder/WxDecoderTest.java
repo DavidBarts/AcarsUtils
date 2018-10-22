@@ -35,6 +35,7 @@ public class WxDecoderTest {
     private FakeAcarsMessage aaObs, aaNonObs, aaAck;
     private FakeAcarsMessage amObs1, amObs2, amBadObs, amNonObs;
     private FakeAcarsMessage f9Obs, f9NonObs, f9Ack;
+    private FakeAcarsMessage acObs, acNonObs, rvObs, rvNonObs;
 
     private FakeAcarsMessage[] allMessages;
 
@@ -241,6 +242,20 @@ public class WxDecoderTest {
         f9Ack.setRegistration(".N709FR").setFlightId("F90681").setLabel("_\u007f")
             .setMode('2').setBlockId('4').setAcknowledge('5')
             .setMessageId("S65A");
+            
+        acObs = new FakeAcarsMessage();
+        acObs.setRegistration(".C-FDCA").setFlightId("AC0541").setLabel("4T")
+            .setMode('2').setBlockId('9').setAcknowledge('N')
+            .setMessageId("M38A")
+            .setMessage("AGFSR AC0541/31/31/YYZSEA/2349Z/405/4751.8N12145.1W/101/      /0039/0133/M06/195018/0290/   /---/2337/2357/----/----")
+        acNonObs = new FakeAcarsMessage();
+        acNonObs.setRegistration(".C-FLSS").setFlightId("AC0540").setLabel("H1")
+            .setMode('2').setBlockId('8').setAcknowledge('G')
+            .setMessageId("D36A")
+            .setMessage("#DFBA04/A32004,1,1/CCC-FLSS,OCT18,141818,KSEA,CYYZ,0540/C105,40031,4000,54,0010,0,0100,54,X/CE0177,01754,169,263,6947,334,C13006/EC731584,00759,04818,00372,D3/EE731966,60611,12812,")
+
+        rvObs = acObs.clone().setFlightId("RV1896");
+        rvNonObs = acNonObs.clone().setFlightId("RV1896");
 
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
@@ -580,6 +595,31 @@ public class WxDecoderTest {
         WxDecoder dec = decoderForName("F9");
         AcarsObservation actuallyIs = dec.decode(f9Obs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));
+    }
+    
+    @Test
+    public void airCanada() {
+        onlyGetsMine("AC");
+        wrapsAround(acObs);
+        worksWithTrailingNewline(acObs);
+        worksWithHarmlessTruncation(acObs, 80);
+        AcarsObservation shouldBe = new AcarsObservation(
+            47.454, -122.298, 10100, parseDate("2018-12-31T23:50:13Z"));
+        shouldBe.setTemperature(-6.0f).setWindDirection((short) 195)
+            .setWindSpeed((short) 18);
+        WxDecoder dec = decoderForName("AC");
+        AcarsObservation actuallyIs = dec.decode(acObs, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+        assertNull(dec.decode(acNonObs));
+
+        onlyGetsMine("RV");
+        wrapsAround(rvObs);
+        worksWithTrailingNewline(rvObs);
+        worksWithHarmlessTruncation(rvObs, 80);
+        dec = decoderForName("AC");
+        actuallyIs = dec.decode(rvObs, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+        assertNull(dec.decode(rvNonObs));
     }
 
     private static Date parseDate(String s) {
