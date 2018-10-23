@@ -242,7 +242,7 @@ public class WxDecoderTest {
         f9Ack.setRegistration(".N709FR").setFlightId("F90681").setLabel("_\u007f")
             .setMode('2').setBlockId('4').setAcknowledge('5')
             .setMessageId("S65A");
-            
+
         acObs = new FakeAcarsMessage();
         acObs.setRegistration(".C-FDCA").setFlightId("AC0541").setLabel("4T")
             .setMode('2').setBlockId('9').setAcknowledge('N')
@@ -596,13 +596,14 @@ public class WxDecoderTest {
         AcarsObservation actuallyIs = dec.decode(f9Obs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));
     }
-    
+
     @Test
     public void airCanada() {
-        /* this one validates length, so we can't do the truncation or
-           newline tests */
+        /* this one validates length, so we can't do the truncation tests */
         onlyGetsMine("AC");
         wrapsAround(acObs);
+        bothNewlinesWork(acObs);
+        worksWithTrailingNewline(acObs);
         /* strange expressions for lat/long to mirror parsing logic */
         AcarsObservation shouldBe = new AcarsObservation(
             4751.8/100.0, -12145.1/100.0, 10100, parseDate("2017-12-31T23:49:00Z"));
@@ -615,6 +616,8 @@ public class WxDecoderTest {
 
         onlyGetsMine("RV");
         wrapsAround(rvObs);
+        bothNewlinesWork(rvObs);
+        worksWithTrailingNewline(rvObs);
         dec = decoderForName("AC");
         actuallyIs = dec.decode(rvObs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));

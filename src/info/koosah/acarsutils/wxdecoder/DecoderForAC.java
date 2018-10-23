@@ -31,7 +31,7 @@ public class DecoderForAC extends WxDecoder {
         // their weather reports. 4T is not a documented ACARS message type.
         // AC seems fond of these. Oh well.
         String body = message.getMessage();
-        if (!message.getLabel().equals("4T") || body.length() != LENGTH) {
+        if (!message.getLabel().equals("4T") || body.length() < LENGTH) {
             return null;
         }
         if (!PREFIX.matcher(body).lookingAt()) {
