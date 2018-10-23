@@ -247,12 +247,12 @@ public class WxDecoderTest {
         acObs.setRegistration(".C-FDCA").setFlightId("AC0541").setLabel("4T")
             .setMode('2').setBlockId('9').setAcknowledge('N')
             .setMessageId("M38A")
-            .setMessage("AGFSR AC0541/31/31/YYZSEA/2349Z/405/4751.8N12145.1W/101/      /0039/0133/M06/195018/0290/   /---/2337/2357/----/----")
+            .setMessage("AGFSR AC0541/31/31/YYZSEA/2349Z/405/4751.8N12145.1W/101/      /0039/0133/M06/195018/0290/   /---/2337/2357/----/----");
         acNonObs = new FakeAcarsMessage();
         acNonObs.setRegistration(".C-FLSS").setFlightId("AC0540").setLabel("H1")
             .setMode('2').setBlockId('8').setAcknowledge('G')
             .setMessageId("D36A")
-            .setMessage("#DFBA04/A32004,1,1/CCC-FLSS,OCT18,141818,KSEA,CYYZ,0540/C105,40031,4000,54,0010,0,0100,54,X/CE0177,01754,169,263,6947,334,C13006/EC731584,00759,04818,00372,D3/EE731966,60611,12812,")
+            .setMessage("#DFBA04/A32004,1,1/CCC-FLSS,OCT18,141818,KSEA,CYYZ,0540/C105,40031,4000,54,0010,0,0100,54,X/CE0177,01754,169,263,6947,334,C13006/EC731584,00759,04818,00372,D3/EE731966,60611,12812,");
 
         rvObs = acObs.clone().setFlightId("RV1896");
         rvNonObs = acNonObs.clone().setFlightId("RV1896");
@@ -599,12 +599,13 @@ public class WxDecoderTest {
     
     @Test
     public void airCanada() {
+        /* this one validates length, so we can't do the truncation or
+           newline tests */
         onlyGetsMine("AC");
         wrapsAround(acObs);
-        worksWithTrailingNewline(acObs);
-        worksWithHarmlessTruncation(acObs, 80);
+        /* strange expressions for lat/long to mirror parsing logic */
         AcarsObservation shouldBe = new AcarsObservation(
-            47.454, -122.298, 10100, parseDate("2018-12-31T23:50:13Z"));
+            4751.8/100.0, -12145.1/100.0, 10100, parseDate("2017-12-31T23:49:00Z"));
         shouldBe.setTemperature(-6.0f).setWindDirection((short) 195)
             .setWindSpeed((short) 18);
         WxDecoder dec = decoderForName("AC");
@@ -614,8 +615,6 @@ public class WxDecoderTest {
 
         onlyGetsMine("RV");
         wrapsAround(rvObs);
-        worksWithTrailingNewline(rvObs);
-        worksWithHarmlessTruncation(rvObs, 80);
         dec = decoderForName("AC");
         actuallyIs = dec.decode(rvObs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));

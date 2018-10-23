@@ -19,7 +19,7 @@ public class DecoderForAC extends WxDecoder {
 
     private GregorianCalendar[] daysToTry;
     private static final int LENGTH = 116;
-    private static final String PREFIX = Pattern.compile("^AGFSR [A-Z]{2}\\d{4}/\\d{2}/\\d{2}/\\w{6}/\\d{4}Z/\\d{3}/\\d{4}\\.d[NS]\\d{5}\\.d[EW]/\\d{3}/");
+    private static final Pattern PREFIX = Pattern.compile("AGFSR [A-Z]{2}\\d{4}/\\d{2}/\\d{2}/\\w{6}/\\d{4}Z/\\d{3}/\\d{4}\\.\\d[NS]\\d{5}\\.\\d[EW]/\\d{3}/");
 
     /**
      * Decode something.
@@ -31,10 +31,12 @@ public class DecoderForAC extends WxDecoder {
         // their weather reports. 4T is not a documented ACARS message type.
         // AC seems fond of these. Oh well.
         String body = message.getMessage();
-        if (!message.getLabel().equals("4T") || body.length() != LENGTH)
+        if (!message.getLabel().equals("4T") || body.length() != LENGTH) {
             return null;
-        if (!PREFIX.matcher(body).matches())
+        }
+        if (!PREFIX.matcher(body).lookingAt()) {
             return null;
+        }
 
         // Get date/time stamp
         initBase(baseTime);
@@ -63,7 +65,7 @@ public class DecoderForAC extends WxDecoder {
 
         // We must return an Iterable
         ArrayList<AcarsObservation> ret = new ArrayList<AcarsObservation>(1);
-        ret.add(o)
+        ret.add(o);
         return ret;
     }
 
@@ -80,7 +82,7 @@ public class DecoderForAC extends WxDecoder {
     }
 
     private Date parseTime(String rawDd, String hhmm) {
-        int dd = Integer.parseInt(rawDd));
+        int dd = Integer.parseInt(rawDd);
         int hh = Integer.parseInt(hhmm.substring(0, 2));
         int mm = Integer.parseInt(hhmm.substring(2, 4));
         for (GregorianCalendar day : daysToTry)

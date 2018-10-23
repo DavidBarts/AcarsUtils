@@ -4,7 +4,7 @@ package info.koosah.acarsutils;
  * Allows us to spoof an ACARS message, mainly for the purpose of
  * testing decoders.
  */
-public class FakeAcarsMessage implements IAcarsMessage {
+public class FakeAcarsMessage implements IAcarsMessage, Cloneable {
     private String registration;
     public String getRegistration() {
         return registration;
@@ -89,5 +89,19 @@ public class FakeAcarsMessage implements IAcarsMessage {
     public FakeAcarsMessage() {
         registration = flightId = label = source = message = null;
         mode = blockId = acknowledge = 0;
+    }
+
+    public FakeAcarsMessage clone() {
+        FakeAcarsMessage ret = new FakeAcarsMessage();
+        ret.registration = registration;
+        ret.flightId = flightId;
+        ret.label = label;
+        ret.mode = mode;
+        ret.blockId = blockId;
+        ret.acknowledge = acknowledge;
+        ret.messageId = messageId;
+        ret.source = source;
+        ret.message = message;
+        return ret;
     }
 }
