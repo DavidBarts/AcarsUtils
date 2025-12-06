@@ -16,15 +16,15 @@
   </macrodef>
   <env-require name="JRE_HOME"/>
 
-  <!-- cribbed from https://stackoverflow.com/questions/7129672/uppercase-lowercase-capitalize-an-ant-property -->
-  <scriptdef language="javascript" name="toLowerCase">
-    <attribute name="value" />
-    <attribute name="target" />
-    <![CDATA[
-      project.setProperty( attributes.get( "target" ),
-                           attributes.get( "value" ).toLowerCase() );
-    ]]>
-  </scriptdef>
+  <!-- toLowerCase needs this -->
+  <property name="antlib.jar"    value="${basedir}/antlib/antlib.jar"/>
+
+  <!-- turn a string to lower case -->
+  <taskdef name="toLowerCase" classname="ToLowerCase">
+    <classpath>
+      <pathelement location="${antlib.jar}"/>
+    </classpath>
+  </taskdef>
 
   <!-- Define the properties used by the build -->
   <property name="app.name"      value="${ant.project.name}"/>

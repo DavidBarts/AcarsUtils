@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="antlib" default="help" basedir=".">
+  <!-- import all environment variables as env.* -->
+  <property environment="env"/>
+
+  <!-- ensure required environment variables are set -->
+  <macrodef name="env-require">
+    <attribute name="name"/>
+    <sequential>
+      <fail message="Environment variable @{name} not set!">
+        <condition>
+          <not><isset property="env.@{name}"/></not>
+        </condition>
+      </fail>
+    </sequential>
+  </macrodef>
+  <env-require name="ANT_HOME"/>
+  <env-require name="JRE_HOME"/>
+
+  <!-- Define the properties used by the build -->
+  <property name="jar.name"      value="${basedir}/antlib.jar"/>
+  <property name="work.home"     value="${basedir}/work"/>
+  
+  <target name="all" depends="clean,jar"
+          description="Clean work dirs, compile, make JAR."/>
+          
+  <!-- clean old cruft out of our way -->
+  <target name="clean"
+          description="Delete old work directories.">
+    <delete dir="${work.home}"/>
+  </target>
+
+  <!-- make new dist and work trees -->
+  <target name="prepare" depends="clean"
+          description="Create new work directories.">
+    <mkdir dir="${work.home}"/>
+  </target>
+  
+  <!-- help message -->
+  <target name="help">
+    <echo>You can use the following targets:</echo>
+    <echo> </echo>
+    <echo>  help    : (default) Prints this message </echo>
+    <echo>  jar     : Make JAR file.</echo>
+    <echo> </echo>
+  </target>
+  
+  <!-- Define the CLASSPATH -->
+  <target name="classpath">
+    <path id="compile.classpath">
+      <fileset dir="${env.JRE_HOME}/lib">
+        <include name="tools.jar"/>
+      </fileset>
+      <fileset dir="${env.ANT_HOME}/lib">
+        <include name="*.jar"/>
+      </fileset>
+    </path>
+  </target>
+  
+  <!-- compile *.java to *.class -->
+  <target name="compile" depends="prepare,classpath"
+          description="Compile Java sources to ${work.home}">
+    <javac srcdir="." destdir="${work.home}" debug="true"
+           includeAntRuntime="false">
+      <classpath refid="compile.classpath"/>
+    </javac>
+  </target>
+
+  <!-- make .jar file -->
+  <target name="jar" depends="compile" description="Create JAR file.">
+    <jar basedir="${work.home}" destfile="${jar.name}"
+         excludes="**/*Test.class"/>
+  </target>
+
+</project>

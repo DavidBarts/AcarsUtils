@@ -36,6 +36,8 @@ public class WxDecoderTest {
     private FakeAcarsMessage amObs1, amObs2, amBadObs, amNonObs;
     private FakeAcarsMessage f9Obs, f9NonObs, f9Ack;
     private FakeAcarsMessage acObs, acNonObs, rvObs, rvNonObs;
+    private FakeAcarsMessage wsObsLocal, wsObsDistant, wsObsJunk1, wsObsJunk2,
+        wsNonObs, wsAck;
 
     private FakeAcarsMessage[] allMessages;
 
@@ -257,11 +259,57 @@ public class WxDecoderTest {
         rvObs = acObs.clone().setFlightId("RV1896");
         rvNonObs = acNonObs.clone().setFlightId("RV1896");
 
+        wsObsLocal = new FakeAcarsMessage();
+        wsObsLocal.setRegistration(".C-GXRW").setFlightId("WS2192")
+            .setLabel("H1").setSource("DF").setMode('2').setBlockId('1')
+            .setAcknowledge('\u0015').setMessageId("D11A")
+            .setMessage("#DFB11000,C-GXRW,B737-800,251205,WJ2192,CYVR,MMZH,1871,WJ011U\r\n" +
+                "23.55.55,TO,0934,01517,176.4,.273,003.0,007.3,N4910.0,W12308.3,147040\r\n" +
+                "1437,037.9\r\n" +
+                "087.19,094.1,734.0,07264,068.8,13.2,62,067,168,04.47,133.6,001.1");
+        wsObsDistant = new FakeAcarsMessage();
+        wsObsDistant.setRegistration(".C-GDMP").setFlightId("WS0737")
+            .setLabel("H1").setSource("DF").setMode('2').setBlockId('9')
+            .setAcknowledge('\u0015').setMessageId("D14A")
+            .setMessage("#DFB12000,C-GDMP,B737-800,251205,WJ0737,CYYZ,CYVR,0867,WJ011U\r\n" +
+                "23.55.06,CR,0829,35997,257.7,.778,-51.0,-24.0,N4558.0,W08328.1,150560\r\n" +
+                "5000,17.4\r\n" +
+                "088.87,092.5,661.0,2728,0063,14.8,46,098,001.3\r\n" +
+                "088.81,092.2,647.");
+        wsObsJunk1 = new FakeAcarsMessage();
+        wsObsJunk1.setRegistration(".C-FWJS").setFlightId("WS0124")
+            .setLabel("H1").setSource("DF").setMode('2').setBlockId('9')
+            .setAcknowledge('\u0015').setMessageId("D02A")
+            .setMessage("#DFB72100,C-FWJS,B737-800,251205,WJ0712,CYVR,CYYZ,0787,WJ011T\r\n" +
+                "23.58.17,TO,0361,00127,045,.15,019.8,018.5,N4911.0,W12312.3,155800\r\n" +
+                ",TO-2,YES\r\n" +
+                ",0,1,0,1,036.0\r\n" +
+                "962382,658976");
+        wsObsJunk2 = new FakeAcarsMessage();
+        wsObsJunk2.setRegistration(".C-FONK").setFlightId("WS0712")
+            .setLabel("H1").setSource("DF").setMode('2').setBlockId('7')
+            .setAcknowledge('\u0015').setMessageId("D53A")
+            .setMessage("#DFB72100,C-FONK,B737-800,251205,WJ0124,CYVR,CYYC,3818,WJ011U\r\n" +
+                "23.59.58,TO,1215,-0226,045,.15,016.0,015.8,N4911.0,W12312.3,131600\r\n" +
+                ",TO-2,YES\r\n" +
+                ",0,1,0,1,056.0\r\n" +
+                "862516,000000");
+        wsNonObs = new FakeAcarsMessage();
+        wsNonObs.setRegistration(".C-GWSX").setFlightId("WS0553")
+            .setLabel("83").setMode('2').setBlockId('1')
+            .setAcknowledge('\u0015').setMessageId("M85A")
+            .setMessage("GOING TO YVR.\r\n\r\n\r\n");
+        wsAck = new FakeAcarsMessage();
+        wsAck.setRegistration(".C-GWSX").setFlightId("WS0553")
+            .setLabel("_\u007f").setMode('2').setBlockId('8')
+            .setAcknowledge('E').setMessageId("S03A");
+
         allMessages = new FakeAcarsMessage[] { asObs, asNonObs, asAck, wnObs,
             wnNonObs, wnAck, dlObs, nwObs, nwNonObs, nwAck, fxObsA, fxObsB,
             fxObsC, fxNonObs, fxAck, dlObs, dlNonObs, dlBadObs, aaObs, aaAck,
             aaNonObs, amObs1, amObs2, amBadObs, amNonObs, f9Obs, f9NonObs,
-            f9Ack };
+            f9Ack, wsObsLocal, wsObsDistant, wsObsJunk1, wsObsJunk2, wsNonObs,
+            wsAck };
     }
 
     /* a given airline's decoder should only decode its messages */
@@ -622,6 +670,31 @@ public class WxDecoderTest {
         actuallyIs = dec.decode(rvObs, OLD_YEAR).iterator().next();
         assertTrue(actuallyIs.equals(shouldBe));
         assertNull(dec.decode(rvNonObs));
+    }
+
+    @Test
+    public void westJet() {
+        /* by design, not truncation tolerant, so we don't test that */
+        onlyGetsMine("WS");
+        FakeAcarsMessage[] allWsObs =
+            new FakeAcarsMessage[] { wsObsLocal, wsObsDistant };
+        for (FakeAcarsMessage wsObs : allWsObs) {
+            wrapsAround(wsObs);
+            bothNewlinesWork(wsObs);
+            worksWithTrailingNewline(wsObs);
+        }
+
+        WxDecoder dec = decoderForName("WS");
+        AcarsObservation shouldBe = new AcarsObservation(
+            4910.0/100.0, -12308.3/100.0, 1517, parseDate("2017-12-31T23:55:55Z"));
+        shouldBe.setTemperature(3.0f);
+        AcarsObservation actuallyIs = dec.decode(wsObsLocal, OLD_YEAR).iterator().next();
+        assertTrue(actuallyIs.equals(shouldBe));
+        FakeAcarsMessage[] allWsNonObs =
+            new FakeAcarsMessage[] { wsObsJunk1, wsObsJunk2, wsNonObs, wsAck };
+        for (FakeAcarsMessage wsObs : allWsNonObs) {
+            assertNull(dec.decode(wsObs));
+        }
     }
 
     private static Date parseDate(String s) {
