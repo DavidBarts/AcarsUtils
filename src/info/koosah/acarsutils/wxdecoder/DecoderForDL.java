@@ -31,7 +31,7 @@ public class DecoderForDL extends WxDecoder {
         // Delta uses H1 messages from source DF for its observations. If
         // this is not that sort of message, it cannot be an observation.
         String body = message.getMessage();
-        if (!message.getLabel().equals("H1") || !message.getSource().equals("DF")) {
+        if (!message.getLabel().equals("H1") || !"DF".equals(message.getSource())) {
             return null;
         }
 

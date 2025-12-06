@@ -29,7 +29,7 @@ public class DecoderForAS extends WxDecoder {
     public Iterable<AcarsObservation> decode(IAcarsMessage message, Date baseTime) {
         // Alaska uses H1 messages from source DF for its observations. If
         // this is not that sort of message, it cannot be an observation.
-        if (!message.getLabel().equals("H1") || !message.getSource().equals("DF")) {
+        if (!message.getLabel().equals("H1") || !"DF".equals(message.getSource())) {
             return null;
         }
 

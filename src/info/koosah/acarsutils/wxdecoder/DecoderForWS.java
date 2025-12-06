@@ -38,7 +38,7 @@ public class DecoderForWS extends WxDecoder {
     public Iterable<AcarsObservation> decode(IAcarsMessage message, Date baseTime)
     {
         // WestJet uses label H1 messages from source DF for observations.
-        if (!message.getLabel().equals("H1") || !message.getSource().equals("DF")) {
+        if (!message.getLabel().equals("H1") || !"DF".equals(message.getSource())) {
             return null;
         }
 

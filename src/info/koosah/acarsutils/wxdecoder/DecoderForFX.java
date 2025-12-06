@@ -35,7 +35,7 @@ public class DecoderForFX extends WxDecoder {
     public Iterable<AcarsObservation> decode(IAcarsMessage message, Date baseTime) {
         // FedEx uses H1 messages with a source of DF for observations.
         String body = message.getMessage();
-        if (!message.getLabel().equals("H1") || !message.getSource().equals("DF")) {
+        if (!message.getLabel().equals("H1") || !"DF".equals(message.getSource())) {
             return null;
         }
 
